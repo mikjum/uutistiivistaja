@@ -26,14 +26,15 @@ if st.button("Hae ja tiivistä uutiset"):
         articles = []
 
         for entry in feed.entries:
-            combined_text = (entry.title + " " + entry.summary).lower()
+            summary = getattr(entry, "summary", "")
+            combined_text = (entry.title + " " + summary).lower()
             if any(k in combined_text for k in keyword_list):
                 prompt = f"""
 Tiivistä seuraava uutinen suomeksi yhdellä kappaleella:
 
 Otsikko: {entry.title}
 
-{entry.summary}
+{summary}
 """
                 try:
                     response = openai.ChatCompletion.create(
