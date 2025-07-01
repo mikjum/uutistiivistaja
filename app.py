@@ -21,8 +21,8 @@ https://www.marineinsight.com/category/tech/feed
 https://www.marinelog.com/news/rss"""
 )
 
-aihessanat_input = st.text_input("Aihesanat (AI arvioi osuvuuden)", "tekoäly, offshore, meriteknologia")
-pakolliset_input = st.text_input("Pakolliset avainsanat (jos mainitaan, näytetään)", "Wärtsilä, ABB, Neste")
+aihessanat_input = st.text_input("Aihesanat (AI arvioi osuvuuden)", "Artificial intelligence, Remote operations, autonomy, unmanned vessels, situational awareness")
+pakolliset_input = st.text_input("Pakolliset avainsanat (jos mainitaan, näytetään)", "Wärtsilä, ABB, Kongsberg, Nacos, Orca, Avikus, Mitsubishi, Groke, Mahi, Marubeni")
 
 aihessanat = [a.strip().lower() for a in aihessanat_input.split(",") if a.strip()]
 pakolliset_avainsanat = [p.strip().lower() for p in pakolliset_input.split(",") if p.strip()]
