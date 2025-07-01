@@ -1,62 +1,46 @@
-import streamlit as st
 import feedparser
-import openai
-import os
+from openai import OpenAI
+import streamlit as st
 
-# OpenAI API-avain Streamlitin secrets-muuttujista
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# 🔐 Hae API-avain Streamlitin "Secrets" -asetuksista
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-st.set_page_config(page_title="Uutistiivistäjä", page_icon="🗞️")
-st.title("🗞️ Uutistiivistäjä")
-st.markdown("""
-Tämä sovellus lukee RSS-syötteitä, suodattaa uutiset kiinnostuksen mukaan ja tiivistää ne sinulle helposti luettavaan muotoon.
-""")
+st.set_page_config(page_title="Uutistiivistäjä", layout="wide")
+st.title("🗞️ Uutistiivistäjä – RSS-uutisten AI-kooste")
 
-# RSS-syötteen URL
-feed_url = st.text_input("Anna RSS-syötteen URL", "https://yle.fi/uutiset/rss")
+# Syöte: RSS-URL ja kiinnostavat avainsanat
+rss_url = st.text_input("Anna RSS-syötteen URL", "https://yle.fi/uutiset/rss/uutiset.rss")
+keywords = st.text_input("Kiinnostavat avainsanat (pilkulla eroteltuna)", "tekoäly, talous, ilmasto")
+keywords = [kw.strip().lower() for kw in keywords.split(",") if kw.strip()]
 
-# Käyttäjän kiinnostuksen kohteet
-keywords = st.text_input("Kiinnostavat aiheet (pilkulla eroteltuna)", "tekoäly, ilmastonmuutos")
-
-# Aloita prosessointi napista
 if st.button("Hae ja tiivistä uutiset"):
-    with st.spinner("Haetaan ja tiivistetään uutisia..."):
-        feed = feedparser.parse(feed_url)
-        keyword_list = [k.strip().lower() for k in keywords.split(",")]
-        articles = []
+    feed = feedparser.parse(rss_url)
 
-        for entry in feed.entries:
-            summary = getattr(entry, "summary", "")
-            combined_text = (entry.title + " " + summary).lower()
-            if any(k in combined_text for k in keyword_list):
-                prompt = f"""
-Tiivistä seuraava uutinen suomeksi yhdellä kappaleella:
+    for entry in feed.entries:
+        # 📄 Jos summary puuttuu, käytä tyhjää
+        summary = getattr(entry, "summary", "")
+        combined_text = (entry.title + " " + summary).lower()
 
-Otsikko: {entry.title}
+        if any(kw in combined_text for kw in keywords):
+            prompt = f"Tiivistä seuraava uutinen suomeksi yhdellä kappaleella:\n\n" \
+                     f"Otsikko: {entry.title}\n\n{summary}"
 
-{summary}
-"""
-                try:
-                    response = openai.ChatCompletion.create(
-                        model="gpt-4",
-                        messages=[{"role": "user", "content": prompt}]
-                    )
-                    summary = response.choices[0].message.content.strip()
-                except Exception as e:
-                    summary = f"(Tiivistys epäonnistui: {e})"
+            try:
+                # 💬 Kutsu OpenAI APIa uudella tavalla
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Olet suomenkielinen uutistiivistäjä."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.7,
+                )
 
-                articles.append({
-                    "title": entry.title,
-                    "link": entry.link,
-                    "summary": summary
-                })
+                tiivistelma = response.choices[0].message.content.strip()
 
-    # Näytetään tulokset
-    if articles:
-        for article in articles:
-            st.subheader(article["title"])
-            st.markdown(f"[Lue alkuperäinen uutinen]({article['link']})")
-            st.write(article["summary"])
-            st.markdown("---")
-    else:
-        st.info("Ei löytynyt uutisia annetuilla avainsanoilla.")
+                st.subheader(entry.title)
+                st.write(tiivistelma)
+                st.markdown(f"[Lue alkuperäinen uutinen]({entry.link})")
+
+            except Exception as e:
+                st.error(f"Tiivistys epäonnistui:\n\n{e}")
