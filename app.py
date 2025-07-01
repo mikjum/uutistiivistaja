@@ -55,5 +55,4 @@ if st.button("Hae ja tiivistä uutiset"):
                 except Exception as e:
                     st.error(f"Tiivistys epäonnistui:\n\n{e}")
 
-            except Exception as e:
-                st.error(f"Tiivistys epäonnistui:\n\n{e}")
+          
