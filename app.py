@@ -11,12 +11,12 @@ st.title("🗞️ Uutistiivistäjä – RSS-uutisten AI-kooste")
 # ➕ Käyttäjä voi antaa monta RSS-syötettä (yksi per rivi)
 rss_urls_input = st.text_area(
     "Anna RSS-syötteiden URL-osoitteet (yksi per rivi)",
-    "https://yle.fi/uutiset/rss/uutiset.rss\nhttps://feeds.hs.fi/rss/hs-uutiset"
+    "https://www.marinetechnologynews.com/rss/\nhttps://www.marinelog.com/feed/\nhttps://www.ship-technology.com/feed/\nhttps://sea-technology.com/feed"
 )
 rss_urls = [url.strip() for url in rss_urls_input.splitlines() if url.strip()]
 
 # Avainsanat kiinnostuksen kohteita varten
-keywords = st.text_input("Kiinnostavat avainsanat (pilkulla eroteltuna)", "tekoäly, talous, ilmasto")
+keywords = st.text_input("Kiinnostavat avainsanat (pilkulla eroteltuna)", "autonomy, remote, unmanned, nacos, wärtsilä, kongsberg, orca, avikus, mahi, massterly")
 keywords = [kw.strip().lower() for kw in keywords.split(",") if kw.strip()]
 
 if st.button("Hae ja tiivistä uutiset"):
